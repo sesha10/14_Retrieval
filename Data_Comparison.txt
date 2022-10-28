@@ -1,0 +1,48 @@
+Query -> "Manchester United"
+Without any Filter
+-----START-----
+0                              https://www.manutd.com/
+1          https://www.instagram.com/manchesterunited/
+2                           https://twitter.com/manutd
+3                     https://www.youtube.com/c/manutd
+4    https://en.wikipedia.org/wiki/Manchester_Unite...
+6                             https://www.mancity.com/
+7    https://fbref.com/en/squads/19538871/Mancheste...
+8            https://www.espn.com/soccer/team/_/id/360
+9    https://www.premierleague.com/clubs/12/Manches...
+Name: link, dtype: object
+-----END-----
+
+
+
+With Content Filter
+-----START-----
+0                              https://www.manutd.com/
+1          https://www.instagram.com/manchesterunited/
+2                           https://twitter.com/manutd
+3                     https://www.youtube.com/c/manutd
+4    https://en.wikipedia.org/wiki/Manchester_Unite...
+5           https://www.facebook.com/manchesterunited/
+6    https://fbref.com/en/squads/19538871/Mancheste...
+7            https://www.espn.com/soccer/team/_/id/360
+8    https://www.premierleague.com/clubs/12/Manches...
+9    https://play.google.com/store/apps/details?id=...
+Name: link, dtype: object
+-----END-----
+
+
+
+With Content and Tracker Filter
+-----START-----
+0                              https://www.manutd.com/
+4    https://en.wikipedia.org/wiki/Manchester_Unite...
+6                             https://www.mancity.com/
+7    https://fbref.com/en/squads/19538871/Mancheste...
+8            https://www.espn.com/soccer/team/_/id/360
+9    https://www.premierleague.com/clubs/12/Manches...
+1          https://www.instagram.com/manchesterunited/
+2                           https://twitter.com/manutd
+3                     https://www.youtube.com/c/manutd
+5           https://www.facebook.com/manchesterunited/
+Name: link, dtype: object
+-----END-----
