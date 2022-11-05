@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100&display=swap');
+.navbar {
+	width: 100%;
+	height: 90px;
+	background-color: #3bb19b;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	position: relative;
+}
+
+
+.navbar h1 {
+	color: white;
+	font-size: 25px;
+	margin-left: 20px;
+    /* margin-right: 1500px; */
+}
+
+
+/* .card {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    width: 80%;
+    border-radius: 5px;
+} */
+
+
+/* .white_btn {
+	border: none;
+	outline: none;
+	padding: 12px 0;
+	background-color: white;
+	border-radius: 20px;
+	width: 120px;
+	font-weight: bold;
+	font-size: 14px;
+	cursor: pointer;
+	margin-right: 5px;
+} */
+
+/* button {
+    padding: 12px;
+    border-radius: 15px;
+    background-color: rgb(89, 61, 248);
+    color: rgb(243, 236, 236);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out 0s;
+    margin-right: 5px;
+} */
+button:hover {
+    background-color: rgb(219, 221, 81);
+    color: black;
+}

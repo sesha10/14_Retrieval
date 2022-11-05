@@ -1,11 +1,12 @@
 from pickle import TRUE
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 from urllib.parse import urlparse
 from settings import *
 from search import *
 import time
+import sys
 
-with open("blacklist.txt") as f:
+with open("/home/siddhant/Documents/Acads/SSD/SearchEngine/blacklist.txt") as f:
     bad_domains_list = set(f.read().split("\n"))
 
 #Strips HTML of page and returns the content/text
@@ -15,11 +16,17 @@ def get_page_content(row):
     return text
 
 def tracker_urls(row):
-    soup = BeautifulSoup(row["html"], features="lxml")
-    scripts = soup.find_all("scripts", {"src":True})
+    # soup = BeautifulSoup(row["html"], features="lxml")
+    # scripts = soup.find_all("scripts", {"src":True})
+    only_scripts = SoupStrainer(["scripts","a"])
+    soup = BeautifulSoup(row["html"], 'html.parser', parse_only=only_scripts)
+    scripts = list(soup)
     srcs = [s.get("src") for s in scripts]
-    links = soup.find_all("a", {"href":True})
-    href = [l.get("href") for l in links]
+    
+    # only_links = SoupStrainer("a", {"href":True})
+    # soup = BeautifulSoup(row["html"], 'html.parser', parse_only=only_links)
+    # links = list(soup)
+    href = [l.get("href") for l in scripts]
     all_domains = [urlparse(s).hostname for s in srcs + href]
     bad_domains = [a for a in all_domains if a in bad_domains_list]
     return len(bad_domains)
@@ -54,13 +61,13 @@ class Filter():
         return self.filtered
 
 begin = time.time()
-results = search('machine')
-end = time.time()
-
-print("-----START-----")
-print(results["link"])
-print("-----END-----")
+results = search(str(sys.argv[1]))
 fi = Filter(results)
 results = fi.filter()
-print(f"Total runtime of the program is {end - begin}")
 # print(results)
+end = time.time()
+# print(f"Total runtime of the API fetch is {end - begin}")
+# print("Json format is:")
+results.drop(['html'], axis=1, inplace=True)
+print(results.to_json(orient='records'))
+# print(f"Total runtime of the API fetch is {end - begin}")
