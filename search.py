@@ -19,11 +19,11 @@ def search_api(query, pages=int(RESULT_COUNT/10)):
             query=quote_plus(query),
             start=start
         )
-        print("Here:")
-        begin = time.time()
+        #print("Here:")
+        # begin = time.time()
         response = requests.get(url) #gives the result of our search query in json format
-        end = time.time()
-        print(f"Total runtime of the API fetch is {end - begin}")
+        # end = time.time()
+        # print(f"Total runtime of the API fetch is {end - begin}")
         data = response.json()
         results += data["items"]
     # print("-----------------Hello---------------------")

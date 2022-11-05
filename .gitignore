@@ -1,0 +1,33 @@
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
+client/node_modules
+server/node_modules
+bower_components
+SearchEngine.zip
+
+*.sublime*
+
+psd
+thumb
+sketch
+
+client/coverage
+
+# production
+client/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
