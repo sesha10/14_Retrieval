@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 // import Card from 'react-bootstrap/Card';
-import { Input, Space, Spin, Card, Button, Modal } from 'antd';
+import { Input, Space, Spin, Card, Button, Modal, Tabs, Image } from 'antd';
 import { AppstoreOutlined, MailOutlined, SettingOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { Menu } from 'antd';
 const { Search } = Input
 
+const TabPane = Tabs.TabPane;
 
 const cardStyle = {
 	fontFamily: "sans-serif",
@@ -66,6 +67,11 @@ const Main = () => {
 		query: "",
 		userID: localStorage.getItem("userID")
 	});
+
+	const [tabstate, setState] = useState({
+		activeTab: "1"
+	});
+
 	const [links, setLinks] = useState({
 		created: "",
 		link: "",
@@ -74,7 +80,20 @@ const Main = () => {
 		snippet: "",
 		title: "",
 		userID: ""
-	})
+	});
+
+	const [imglinks, setImgLinks] = useState({
+		created: "",
+		displayLink: "",
+		distance: "",
+		link: "",
+		query: "",
+		rank: "",
+		snippet: "",
+		title: "",
+		userID: ""
+	});
+
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const showModal = () => {
 		setIsModalOpen(true);
@@ -104,6 +123,13 @@ const Main = () => {
 	// 	}).catch(error => console.log(error));
 	// }
 
+	const changeTab = activeKey => {
+		console.log(activeKey);
+		this.setState({
+		  activeTab: activeKey
+		});
+	};
+
 	const handleLogout = () => {
 		localStorage.removeItem("token");
 		localStorage.removeItem("userID");
@@ -113,16 +139,17 @@ const Main = () => {
 
 	const onSearch = async (e) => {
 		console.log(e);
-		showModal();
 		try {
 			if(e !== '') {
+				showModal();
 				const url = "http://localhost:8080/api/users/submitQuery";
 				data.query = e;
 				console.log(data);
 				const { data: res } = await axios.post(url, data);
 				console.log(res);
-				setLinks(res);
-				console.log(links);
+				setLinks(res.textdata);
+				setImgLinks(res.imgdata);
+				console.log(imglinks);
 				setIsModalOpen(false);
 			}
 		} catch (error) {
@@ -162,67 +189,76 @@ const Main = () => {
 				</nav>
 			</div>
 			<br />
-			<h5 style={{"marginLeft": 18}}>Favourites</h5>
-			<div className="parent" style={{width: "100%", display: "flex"}}>
-				<div className="left-element">
-					<Menu
-					mode="inline"
-					openKeys={openKeys}
-					onOpenChange={onOpenChange}
-					style={{
-						width: 256,
-					}}
-					items={items}
-					/>
-				</div>
-				<div style={cardStyle} className="right-element">
-					{/* <Card title="With Button" extra={<Button>Test</Button>}>
-					Something here...
-					</Card>
-					<br />
-					<Card title="With Button" extra={<a>Test</a>}>
-					Something here...
-					</Card> */}
-
-
-					<div>
-					{links.length > 0 ? 
-						links.map(data => {
-							return(
-							<div>
-								<Card title={<a href={data.link}>{data.title}</a>}>
-									{data.snippet}
-								</Card>
-								<br />
+			<div>
+				<Tabs defaultActiveKey="1" centered>
+					<TabPane tab="Text" key="1">
+						<h5 style={{"marginLeft": 18}}>Favourites</h5>
+						<div className="parent" style={{width: "100%", display: "flex"}}>
+							<div className="left-element">
+								<Menu
+								mode="inline"
+								openKeys={openKeys}
+								onOpenChange={onOpenChange}
+								style={{
+									width: 256,
+								}}
+								items={items}
+								/>
 							</div>
-							)
-						}) : <h3>No data yet</h3> }
-					</div>
-				</div>
+							<div style={cardStyle} className="right-element">
+								<div>
+								{links.length > 0 ? 
+									links.map(data => {
+										return(
+										<div>
+											<Card title={<a href={data.link}>{data.title}</a>}>
+												{data.snippet}
+											</Card>
+											<br />
+										</div>
+										)
+									}) : <h3>No data yet</h3> }
+								</div>
+							</div>
+						</div>
+						<Modal title="Awaiting Results..." open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+							<Spin size="large" />
+						</Modal>
+        			</TabPane>
+					<TabPane tab="Images" key="2">
+					<h5 style={{"marginLeft": 18}}>Favourites</h5>
+						<div className="parent" style={{width: "100%", display: "flex"}}>
+							<div className="left-element">
+								<Menu
+								mode="inline"
+								openKeys={openKeys}
+								onOpenChange={onOpenChange}
+								style={{
+									width: 256,
+								}}
+								items={items}
+								/>
+							</div>
+							<div style={{"marginLeft": 550}} className="right-element">
+								<div>
+									{imglinks.length > 0 ? 
+										imglinks.map(data => {
+											return(
+											<div>
+												<Image.PreviewGroup>
+													<Image width={200} src={data.link} />
+												</Image.PreviewGroup>
+												<br />
+												<br />
+											</div>
+											)
+										}) : <h3>No data yet</h3> }
+								</div>
+							</div>
+						</div>
+					</TabPane>
+				</Tabs>
 			</div>
-			<Modal title="Awaiting Results..." open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-				<Spin size="large" />
-			</Modal>
-			{/* <div>
-				{data.length > 0 ? 
-					data.map(data => {
-						return(
-						// <div key={data._id}>
-							<Card style={{width: "50rem", marginLeft: "25rem", marginTop: "1rem"}} key={data._id}>
-								<Card.Body>
-									<Card.Text><b>Exam Name: </b>  {data.examname}</Card.Text>
-									<Card.Text><b>Course Name: </b>{data.coursename}</Card.Text>
-									<Card.Text><b>Question No.: </b>{data.questionnum}</Card.Text>
-									<Card.Text><b>TA Roll: </b>{data.tarollno}</Card.Text>
-									<Card.Text><b>Your Comment: </b>{data.studentcomment}</Card.Text>
-									<Card.Text><b>TA's Response: </b>{data.tacomment}</Card.Text>
-								</Card.Body>
-							</Card>
-						// </div>
-						)
-					}) : <h3>No data yet</h3> }
-			</div> */}
-			
 		</div>
 	);
 };
