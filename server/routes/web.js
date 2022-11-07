@@ -44,20 +44,51 @@ router.post("/submitQuery", async(req, res) => {
             // scriptPath: 'path/to/my/scripts', //If you are having python_test.py script in same folder, then it's optional.
             args: [req.body.query] //An argument which can be accessed in the script using sys.argv[1]
         };
-
+        textdata = []
+        imgdata = []
         PythonShell.run('/home/siddhant/Documents/Acads/SSD/SearchEngine/filter.py', options, function (err, result){
             if (err) throw err;
             // result is an array consisting of messages collected
             //during execution of script.
             // console.log('result: ', JSON.parse(result));
-            data = JSON.parse(result)
-            data.forEach(element => {
+            textdata = JSON.parse(result)
+            textdata.forEach(element => {
                 element.userID = req.body.userID
             });
             // data.userID = req.body.userID
-            console.log(data)
-            return res.status(200).send(data);
+            console.log("Inside")
+            PythonShell.run('/home/siddhant/Documents/Acads/SSD/SearchEngine/filter_image.py', options, function (err, result){
+                if (err) throw err;
+                // result is an array consisting of messages collected
+                //during execution of script.
+                // console.log('result: ', JSON.parse(result));
+                imgdata = JSON.parse(result)
+                imgdata.forEach(element => {
+                    element.userID = req.body.userID
+                });
+                // data.userID = req.body.userID
+                console.log(imgdata)
+                return res.status(200).send({textdata, imgdata});
+                // return res.status(200).send(data);
+            });
+            // return res.status(200).send(data);
         });
+
+
+        // PythonShell.run('/home/siddhant/Documents/Acads/SSD/SearchEngine/filter_image.py', options, function (err, result){
+        //     if (err) throw err;
+        //     // result is an array consisting of messages collected
+        //     //during execution of script.
+        //     // console.log('result: ', JSON.parse(result));
+        //     imgdata = JSON.parse(result)
+        //     imgdata.forEach(element => {
+        //         element.userID = req.body.userID
+        //     });
+        //     // data.userID = req.body.userID
+        //     console.log(imgdata)
+        //     // return res.status(200).send(data);
+        // });
+        // return res.status(200).send({textdata, imgdata});
         // const { error } = validateQuery(req.body);
         // if(error)
         //     return res.status(400).send({message: error.details.details[0].message});
@@ -77,6 +108,8 @@ router.post("/submitQuery", async(req, res) => {
         return res.status(500).send({message: "Server Error!!"});
     }
 });
+
+
 
 
 router.post("/addquery", async(req, res) => {

@@ -25,6 +25,7 @@ def search_api(query, pages=int(RESULT_COUNT/10)):
         # end = time.time()
         # print(f"Total runtime of the API fetch is {end - begin}")
         data = response.json()
+        # print(data)
         results += data["items"]
     # print("-----------------Hello---------------------")
     # print(results)
@@ -32,6 +33,7 @@ def search_api(query, pages=int(RESULT_COUNT/10)):
     res_df["rank"] = list(range(1, res_df.shape[0]+1))
     res_df = res_df[["link", "rank", "snippet", "title"]]
     return res_df
+
 
 def scrape_page(links):
     html = []
@@ -55,4 +57,7 @@ def search(query):
     return results
 
 
-# print(search_api("baby strollers"))
+
+# print(search_api_image("baby strollers"))
+
+# print(damerauLevenshtein('Henry C. Harper v. The Law Offices of Huey & Luey, LLP', 'Harper v. The Law Offices of Huey & Luey, LLP', similarity=True))
