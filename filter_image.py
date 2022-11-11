@@ -9,7 +9,7 @@ import sys
 imgquery = str(sys.argv[1])
 # imgquery = str("India")
 
-with open("/home/siddhant/Documents/Acads/SSD/SearchEngine/blacklist.txt") as f:
+with open("/home/sesh/Desktop/SSD_Proj/Web-Info-Retrieval/blacklist.txt") as f:
     bad_domains_list = set(f.read().split("\n"))
 
 #Strips HTML of page and returns the content/text

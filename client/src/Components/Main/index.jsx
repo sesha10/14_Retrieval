@@ -6,6 +6,7 @@ import axios from "axios";
 import { Input, Space, Spin, Card, Button, Modal, Tabs, Image } from 'antd';
 import { AppstoreOutlined, MailOutlined, SettingOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { Menu } from 'antd';
+import Dropdown from 'rsuite/Dropdown';
 const { Search } = Input
 
 const TabPane = Tabs.TabPane;
@@ -163,6 +164,12 @@ const Main = () => {
 		}
 	};
 
+	const triggerImage = (props, ref) => {
+		return (
+			<img {...props} ref={ref} src={process.env.PUBLIC_URL + '/img/index.png'}></img>
+		);
+	};
+
 	return (
 		<div className={styles.main_container}>
 			<div>
@@ -183,9 +190,25 @@ const Main = () => {
 					onSearch={onSearch}
 					style={{ width: 400 }}
 					/>
-					<button id="mybutton" onClick={handleLogout}>
+					{/* <Dropdown renderToggle={`
+					<img id="usimg" src= onClick={handleLogout} alt="">
+
+					</img>
+					`}>
+						<Dropdown.Item>Change Password</Dropdown.Item>
+						<Dropdown.Item>Logout</Dropdown.Item>
+					</Dropdown> */}
+					<>
+					<div>
+						<Dropdown renderToggle={triggerImage}>
+							<Dropdown.Item id="sel">Change Password</Dropdown.Item>
+							<Dropdown.Item onClick={handleLogout} id="sel">Logout</Dropdown.Item>
+						</Dropdown>
+					</div>
+					</>
+					{/* <button id="mybutton" onClick={handleLogout}>
 						Logout
-					</button>
+					</button> */}
 				</nav>
 			</div>
 			<br />

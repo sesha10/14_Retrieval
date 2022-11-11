@@ -46,7 +46,7 @@ router.post("/submitQuery", async(req, res) => {
         };
         textdata = []
         imgdata = []
-        PythonShell.run('/home/siddhant/Documents/Acads/SSD/SearchEngine/filter.py', options, function (err, result){
+        PythonShell.run('/home/sesh/Desktop/SSD_Proj/Web-Info-Retrieval/filter.py', options, function (err, result){
             if (err) throw err;
             // result is an array consisting of messages collected
             //during execution of script.
@@ -57,7 +57,7 @@ router.post("/submitQuery", async(req, res) => {
             });
             // data.userID = req.body.userID
             console.log("Inside")
-            PythonShell.run('/home/siddhant/Documents/Acads/SSD/SearchEngine/filter_image.py', options, function (err, result){
+            PythonShell.run('/home/sesh/Desktop/SSD_Proj/Web-Info-Retrieval/filter_image.py', options, function (err, result){
                 if (err) throw err;
                 // result is an array consisting of messages collected
                 //during execution of script.

@@ -14,7 +14,7 @@
 	color: white;
 	font-size: 25px;
 	margin-left: 20px;
-    /* margin-right: 1500px; */
+    /* margin-right: 1500px;	 */
 }
 
 .ant-spin-text { color: #999; }
@@ -53,4 +53,15 @@
 button:hover {
     background-color: rgb(219, 221, 81);
     color: black;
+}
+
+img {
+	width: 50px;
+	height: 50px;
+	object-position: right;
+	margin-right: 2em;
+}
+
+#sel:hover {
+	cursor: pointer;
 }
