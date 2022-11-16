@@ -2,20 +2,24 @@ import styles from "./styles.module.css";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-// import Card from 'react-bootstrap/Card';
-import { Input, Space, Spin, Card, Button, Modal, Tabs, Image } from 'antd';
+import { Input, Space, Spin, Card, Button, Modal, Tabs, Image, Pagination } from 'antd';
 import { AppstoreOutlined, MailOutlined, SettingOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { Menu } from 'antd';
+<<<<<<< HEAD
 import Dropdown from 'rsuite/Dropdown';
 const { Search } = Input
 
+=======
+const { Search } = Input;
+const { Meta } = Card;
+>>>>>>> a4ae82b434dfb386ca5c194238fd2cb961fce4c1
 const TabPane = Tabs.TabPane;
 
 const cardStyle = {
 	fontFamily: "sans-serif",
 	padding: "0rem",
 	width: "50rem",
-	marginLeft: "10rem",
+	marginLeft: "12rem",
 };
 
 function getItem(label, key, icon, children, type) {
@@ -28,17 +32,17 @@ function getItem(label, key, icon, children, type) {
 	};
   }
   const items = [
-	getItem('Study', 'sub1', <StarFilled />, [
+	getItem('Favourites', 'sub1', <StarFilled />, [
 	  getItem('Option 1', '1'),
 	  getItem('Option 2', '2'),
 	  getItem('Option 3', '3'),
 	  getItem('Option 4', '4'),
 	]),
-	getItem('Movies', 'sub2', <StarFilled />, [
+	getItem('History', 'sub2', <StarFilled />, [
 	  getItem('Option 5', '5'),
 	  getItem('Option 6', '6'),
 	]),
-	getItem('Music', 'sub3', <StarFilled />, [
+	getItem('Logout', 'sub3', <StarFilled />, [
 	  getItem('Option 9', '9'),
 	  getItem('Option 10', '10'),
 	  getItem('Option 11', '11'),
@@ -49,7 +53,7 @@ function getItem(label, key, icon, children, type) {
   // submenu keys of first level
   const rootSubmenuKeys = ['sub1', 'sub2', 'sub4'];
 
-
+  const pageSize = 10;
 
 const Main = () => {
 
@@ -69,8 +73,26 @@ const Main = () => {
 		userID: localStorage.getItem("userID")
 	});
 
+	const [prevData, setPrevData] = useState({
+		created: "",
+		imglinks: "",
+		link: "",
+		query: "",
+		rank: "",
+		snippet: "",
+		title: "",
+		userID: ""
+	});
+
 	const [tabstate, setState] = useState({
 		activeTab: "1"
+	});
+
+	const [paginationState, setPaginationState] = useState({
+		totalPage: 0,
+		current: 1,
+		minIndex: 0,
+		maxIndex: 0
 	});
 
 	const [links, setLinks] = useState({
@@ -107,22 +129,22 @@ const Main = () => {
 	const handleCancel = () => {
 	setIsModalOpen(false);
 	};
-	// const params = {
-	// 	rollno: localStorage.getItem("rollno")
-	// };
+	const params = {
+		userID: localStorage.getItem("userID")
+	};
 
-	// useEffect(() => {
-	// 	getAllQueries();
-	// }, []);
+	useEffect(() => {
+		getPreviousQueries();
+	}, []);
 
-	// const getAllQueries = () => {
-	// 	const url = "http://localhost:8080/api/users/getqueries";
-	// 	console.log(localStorage.getItem("rollno"));
-	// 	axios.get(url, {params}).then(res => {
-	// 		console.log(res.data);
-	// 		setData(res.data);
-	// 	}).catch(error => console.log(error));
-	// }
+	const getPreviousQueries = () => {
+		const url = "http://localhost:8080/api/users/getqueries";
+		console.log(localStorage.getItem("userID"));
+		axios.get(url, {params}).then(res => {
+			console.log(res.data);
+			setPrevData(res.data);
+		}).catch(error => console.log(error));
+	}
 
 	const changeTab = activeKey => {
 		console.log(activeKey);
@@ -134,8 +156,19 @@ const Main = () => {
 	const handleLogout = () => {
 		localStorage.removeItem("token");
 		localStorage.removeItem("userID");
-		// localStorage.removeItem("type");
 		window.location = "http://localhost:3000/";
+	};
+
+	const saveLink = (temp1) => {
+		console.log(temp1);
+	}
+
+	const handleChange = (page) => {
+		setPaginationState({
+		  current: page,
+		  minIndex: (page - 1) * pageSize,
+		  maxIndex: page * pageSize
+		});
 	};
 
 	const onSearch = async (e) => {
@@ -175,13 +208,6 @@ const Main = () => {
 			<div>
 				<nav className={styles.navbar}>
 					<h1>Findsly  <Spin size="large" /></h1>
-					{/* <Link to="/student/addQuery">
-						<button type="button">
-							Add New Query
-						</button>
-					</Link> */}
-					{/* <Search placeholder="Search..." enterButton="Search" size="large" loading={false} /> */}
-					{/* <Search placeholder="input search text" onSearch={onSearch} enterButton /> */}
 					<Search
 					placeholder="Search..."
 					allowClear
@@ -215,7 +241,7 @@ const Main = () => {
 			<div>
 				<Tabs defaultActiveKey="1" centered>
 					<TabPane tab="Text" key="1">
-						<h5 style={{"marginLeft": 18}}>Favourites</h5>
+						<h5 style={{"marginLeft": 18}}>Settings</h5>
 						<div className="parent" style={{width: "100%", display: "flex"}}>
 							<div className="left-element">
 								<Menu
@@ -231,25 +257,62 @@ const Main = () => {
 							<div style={cardStyle} className="right-element">
 								<div>
 								{links.length > 0 ? 
-									links.map(data => {
-										return(
+									links.map((data, index) => index >= paginationState.minIndex &&
+									index < paginationState.maxIndex && (
 										<div>
-											<Card title={<a href={data.link}>{data.title}</a>}>
+											<Card title={<a style={{"textDecoration": "none"}} href={data.link} target="_blank">{data.title}</a>} 
+											extra={<a href="#" onClick={() => saveLink(data.title)}>Add to Favourites</a>} hoverable={true}>
 												{data.snippet}
 											</Card>
 											<br />
 										</div>
 										)
-									}) : <h3>No data yet</h3> }
+									)
+									: 
+									(prevData.length > 0 ? 
+										prevData.map(data => {
+										return(
+											<div>
+												<Card
+													hoverable
+													style={{ width: 240 }}
+													cover={
+													<div style={{ overflow: "hidden", height: "100px" }}>
+														<img
+														alt="example"
+														style={{ height: "100%", width: "100%", marginLeft: "0rem" }}
+														src={data.imglinks}
+														/>
+													</div>
+													}
+													onClick={() => window.open(data.link, '_blank')}
+												>
+													<Meta title={data.title} description={data.snippet} />
+												</Card>
+												<br />
+											</div>
+										)
+									}) :
+									(<h3>No data yet</h3>)
+								)
+								}
+								</div>
+								<div>
+									{links.length > 0 ? 
+										<Pagination total={links.length} pageSize={10} current={paginationState.current} 
+										onChange={handleChange} style={{ "marginBottom":"1rem" }}/>
+										:
+										<h4></h4>
+									}
 								</div>
 							</div>
 						</div>
-						<Modal title="Awaiting Results..." open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+						<Modal title="Awaiting Results..." open={isModalOpen} onOk={handleOk} onCancel={handleCancel} closable={false} footer={false} maskClosable = {false}>
 							<Spin size="large" />
 						</Modal>
         			</TabPane>
 					<TabPane tab="Images" key="2">
-					<h5 style={{"marginLeft": 18}}>Favourites</h5>
+					<h5 style={{"marginLeft": 18}}>Settings</h5>
 						<div className="parent" style={{width: "100%", display: "flex"}}>
 							<div className="left-element">
 								<Menu
