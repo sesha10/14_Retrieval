@@ -17,7 +17,7 @@ const querySchema = new mongoose.Schema({
         trim: true
     },
     link: {
-        type: Number,
+        type: String,
         required: true,
         trim: true
     },
@@ -34,6 +34,11 @@ const querySchema = new mongoose.Schema({
     created: {
         type: String,
         required: true,
+        trim: true,
+    },
+    imglinks: {
+        type: String,
+        required: false,
         trim: true,
     },
     userID: {

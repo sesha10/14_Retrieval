@@ -11,6 +11,8 @@ import time
 
 def search_api(query, pages=int(RESULT_COUNT/10)):
     results = []
+    imglinks = []
+    finalres = []
     for i in range(0, pages):
         start = i*10 + i #defines rank of first record on a page
         url = SEARCH_URL.format(
@@ -25,13 +27,22 @@ def search_api(query, pages=int(RESULT_COUNT/10)):
         # end = time.time()
         # print(f"Total runtime of the API fetch is {end - begin}")
         data = response.json()
-        # print(data)
         results += data["items"]
-    # print("-----------------Hello---------------------")
-    # print(results)
-    res_df = pd.DataFrame.from_dict(results)
+        for j in range(0, len(results)):
+            if 'pagemap' in results[j]:
+                if 'cse_thumbnail' in results[j]['pagemap']:
+                    imglinks.append(results[j]['pagemap']['cse_thumbnail'][0]['src'])
+                else:
+                    imglinks.append('')
+            else:
+                imglinks.append('')
+        finalres += results
+        results = []
+    # print(imglinks)
+    res_df = pd.DataFrame.from_dict(finalres)
     res_df["rank"] = list(range(1, res_df.shape[0]+1))
-    res_df = res_df[["link", "rank", "snippet", "title"]]
+    res_df["imglinks"] = imglinks
+    res_df = res_df[["link", "rank", "snippet", "title", "imglinks"]]
     return res_df
 
 
@@ -47,7 +58,7 @@ def scrape_page(links):
 
 
 def search(query):
-    columns = ["query", "rank", "link", "title", "snippet", "html", "created"]
+    columns = ["query", "rank", "link", "title", "snippet", "html", "created", "imglinks"]
     results = search_api(query)
     results["html"] = scrape_page(results["link"])
     results = results[results["html"].str.len() > 0].copy()
@@ -58,6 +69,6 @@ def search(query):
 
 
 
-# print(search_api_image("baby strollers"))
+# print(search_api("danish"))
 
 # print(damerauLevenshtein('Henry C. Harper v. The Law Offices of Huey & Luey, LLP', 'Harper v. The Law Offices of Huey & Luey, LLP', similarity=True))
