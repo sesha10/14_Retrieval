@@ -40,6 +40,13 @@ def get_time_content(row):
     # print(tago["content"] if tago else "NO content")
     return tago["content"][:10] if tago else "Now"
 
+def get_mod_time_content(row):
+    soup = BeautifulSoup(row["html"], 'html.parser')
+    mtago = soup.find("meta", property="article:modified_time")
+
+    # print(tago["content"] if tago else "NO content")
+    return mtago["content"][:10] if mtago else "Now"
+
 
 class Filter():
     def __init__(self, results):
@@ -61,7 +68,9 @@ class Filter():
 
     def time_filter(self):
         time_cnt = self.filtered.apply(get_time_content, axis=1)
+        mod_time_cnt = self.filtered.apply(get_mod_time_content, axis=1)
         self.filtered["time"] = time_cnt
+        self.filtered["lattime"] = mod_time_cnt
 
 
     def filter(self):
