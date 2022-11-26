@@ -5,6 +5,8 @@ from settings import *
 from search import *
 import time
 import sys
+from requests_html import HTMLSession
+from collections import Counter
 import dateparser
 import datetime
 
@@ -47,6 +49,16 @@ def get_mod_time_content(row):
     # print(tago["content"] if tago else "NO content")
     return mtago["content"][:10] if mtago else "Now"
 
+def get_link_num(weblk):
+    # print(weblk)
+    # print("")
+    session = HTMLSession()
+    r = session.get(weblk)
+    unique_netlocs = len(Counter(urlparse(link).netloc for link in r.html.absolute_links))
+    # for link in unique_netlocs:
+    #     print(link, unique_netlocs[link])
+    return unique_netlocs
+
 
 class Filter():
     def __init__(self, results):
@@ -72,11 +84,18 @@ class Filter():
         self.filtered["time"] = time_cnt
         self.filtered["lattime"] = mod_time_cnt
 
+    def link_filter(self):
+        link_cnt = self.filtered["link"].apply(get_link_num)
+        print(link_cnt)
+        # print("")
+        self.filtered["linkcnt"] = link_cnt
+
 
     def filter(self):
         self.content_filter()
         self.tracker_filter()
         self.time_filter()
+        self.link_filter()
         # self.time_filter()
         self.filtered = self.filtered.sort_values("rank", ascending=True)
         self.filtered["rank"] = self.filtered["rank"].round()
