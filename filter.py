@@ -5,6 +5,10 @@ from settings import *
 from search import *
 import time
 import sys
+from requests_html import HTMLSession
+from collections import Counter
+import dateparser
+import datetime
 
 with open("/home/siddhant/Documents/Acads/SSD/SearchEngine/blacklist.txt") as f:
     bad_domains_list = set(f.read().split("\n"))
@@ -38,6 +42,23 @@ def get_time_content(row):
 
     # print(tago["content"] if tago else "NO content")
     return tago["content"][:10] if tago else "Now"
+
+def get_mod_time_content(row):
+    soup = BeautifulSoup(row["html"], 'html.parser')
+    mtago = soup.find("meta", property="article:modified_time")
+
+    # print(tago["content"] if tago else "NO content")
+    return mtago["content"][:10] if mtago else "Now"
+
+def get_link_num(weblk):
+    # print(weblk)
+    # print("")
+    session = HTMLSession()
+    r = session.get(weblk)
+    unique_netlocs = len(Counter(urlparse(link).netloc for link in r.html.absolute_links))
+    # for link in unique_netlocs:
+    #     print(link, unique_netlocs[link])
+    return unique_netlocs
 
 
 def get_mod_time_content(row):
@@ -73,10 +94,19 @@ class Filter():
         self.filtered["time"] = time_cnt
         self.filtered["lattime"] = mod_time_cnt
 
+    def link_filter(self):
+        link_cnt = self.filtered["link"].apply(get_link_num)
+        print(link_cnt)
+        # print("")
+        self.filtered["linkcnt"] = link_cnt
+
     def filter(self):
         self.content_filter()
         self.tracker_filter()
         self.time_filter()
+
+        self.link_filter()
+        # self.time_filter()
         self.filtered = self.filtered.sort_values("rank", ascending=True)
         self.filtered["rank"] = self.filtered["rank"].round()
         # print("-----START-----")
