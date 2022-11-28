@@ -10,7 +10,7 @@ from collections import Counter
 import dateparser
 import datetime
 
-with open("/home/sesh/Desktop/SSD_Proj/Web-Info-Retrieval/blacklist.txt") as f:
+with open("/home/siddhant/Documents/Acads/SSD/SearchEngine/blacklist.txt") as f:
     bad_domains_list = set(f.read().split("\n"))
 
 #Strips HTML of page and returns the content/text
@@ -34,6 +34,7 @@ def tracker_urls(row):
     all_domains = [urlparse(s).hostname for s in srcs + href]
     bad_domains = [a for a in all_domains if a in bad_domains_list]
     return len(bad_domains)
+
 
 def get_time_content(row):
     soup = BeautifulSoup(row["html"], 'html.parser')
@@ -60,6 +61,14 @@ def get_link_num(weblk):
     return unique_netlocs
 
 
+def get_mod_time_content(row):
+    soup = BeautifulSoup(row["html"], 'html.parser')
+    mtago = soup.find("meta", property="article:modified_time")
+
+    # print(tago["content"] if tago else "NO content")
+    return mtago["content"][:10] if mtago else "Now"
+
+
 class Filter():
     def __init__(self, results):
         self.filtered = results.copy()
@@ -78,6 +87,7 @@ class Filter():
         tracker_count[tracker_count > tracker_count.median()] = RESULT_COUNT * 2
         self.filtered["rank"] += tracker_count
 
+
     def time_filter(self):
         time_cnt = self.filtered.apply(get_time_content, axis=1)
         mod_time_cnt = self.filtered.apply(get_mod_time_content, axis=1)
@@ -90,22 +100,25 @@ class Filter():
         # print("")
         self.filtered["linkcnt"] = link_cnt
 
-
     def filter(self):
         self.content_filter()
         self.tracker_filter()
         self.time_filter()
+
         self.link_filter()
         # self.time_filter()
         self.filtered = self.filtered.sort_values("rank", ascending=True)
         self.filtered["rank"] = self.filtered["rank"].round()
         # print("-----START-----")
-        # print(self.filtered["time"])
+        # print(self.filtered["link"])
         # print("-----END-----")
         return self.filtered
 
 begin = time.time()
 results = search(str(sys.argv[1]))
+#----
+# results = search("krishna")
+#----
 fi = Filter(results)
 results = fi.filter()
 # print(results)
