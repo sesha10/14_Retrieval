@@ -5,14 +5,8 @@ import axios from "axios";
 import { Input, Space, Spin, Card, Button, Modal, Tabs, Image, Pagination } from 'antd';
 import { AppstoreOutlined, MailOutlined, SettingOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { Menu } from 'antd';
-<<<<<<< HEAD
-import Dropdown from 'rsuite/Dropdown';
-const { Search } = Input
-
-=======
 const { Search } = Input;
 const { Meta } = Card;
->>>>>>> a4ae82b434dfb386ca5c194238fd2cb961fce4c1
 const TabPane = Tabs.TabPane;
 
 const cardStyle = {
@@ -31,23 +25,23 @@ function getItem(label, key, icon, children, type) {
 	  type,
 	};
   }
-  const items = [
-	getItem('Favourites', 'sub1', <StarFilled />, [
-	  getItem('Option 1', '1'),
-	  getItem('Option 2', '2'),
-	  getItem('Option 3', '3'),
-	  getItem('Option 4', '4'),
-	]),
-	getItem('History', 'sub2', <StarFilled />, [
-	  getItem('Option 5', '5'),
-	  getItem('Option 6', '6'),
-	]),
-	getItem('Logout', 'sub3', <StarFilled />, [
-	  getItem('Option 9', '9'),
-	  getItem('Option 10', '10'),
-	  getItem('Option 11', '11'),
-	  getItem('Option 12', '12')
-	]),
+  let items = [
+	// getItem('Favourites', 'sub1', <StarFilled />, [
+	//   getItem('Option 1', '1'),
+	//   getItem('Option 2', '2'),
+	//   getItem('Option 3', '3'),
+	//   getItem('Option 4', '4'),
+	// ]),
+	// getItem('History', 'sub2', <StarFilled />, [
+	//   getItem('Option 5', '5'),
+	//   getItem('Option 6', '6'),
+	// ]),
+	// getItem('Logout', 'sub3', <StarFilled />, [
+	//   getItem('Option 9', '9'),
+	//   getItem('Option 10', '10'),
+	//   getItem('Option 11', '11'),
+	//   getItem('Option 12', '12')
+	// ]),
   ];
   
   // submenu keys of first level
@@ -73,6 +67,18 @@ const Main = () => {
 		userID: localStorage.getItem("userID")
 	});
 
+	const [bookmark, setBookMarks] = useState({
+		link: "",
+		title: "",
+		userID: localStorage.getItem("userID")
+	});
+
+	const [userbookmark, setUserBookMarks] = useState({
+		link: "",
+		title: "",
+		userID: ""
+	});
+
 	const [prevData, setPrevData] = useState({
 		created: "",
 		imglinks: "",
@@ -92,7 +98,7 @@ const Main = () => {
 		totalPage: 0,
 		current: 1,
 		minIndex: 0,
-		maxIndex: 0
+		maxIndex: 10
 	});
 
 	const [links, setLinks] = useState({
@@ -141,8 +147,16 @@ const Main = () => {
 		const url = "http://localhost:8080/api/users/getqueries";
 		console.log(localStorage.getItem("userID"));
 		axios.get(url, {params}).then(res => {
-			console.log(res.data);
-			setPrevData(res.data);
+			console.log(res.data.bookmarks);
+			setPrevData(res.data.sendData);
+			setUserBookMarks(res.data.bookmarks);
+			console.log(userbookmark);
+
+			items = [
+				getItem('Favourites', 'sub1', <StarFilled />, res.data.bookmarks.map((data, index) => getItem(data.title, index)))
+			];
+
+
 		}).catch(error => console.log(error));
 	}
 
@@ -159,17 +173,46 @@ const Main = () => {
 		window.location = "http://localhost:3000/";
 	};
 
-	const saveLink = (temp1) => {
-		console.log(temp1);
+	const saveLink = async (title, link) => {
+		console.log(title, link);
+		try {
+			if(title !== '' && link !== '') {
+				// showModal();
+				const url = "http://localhost:8080/api/users/addBookmark";
+				bookmark.link = link;
+				bookmark.title = title
+				console.log(bookmark);
+				const { data: res } = await axios.post(url, bookmark);
+				console.log(res);
+				// setLinks(res.textdata);
+				// setImgLinks(res.imgdata);
+				// console.log(imglinks);
+				// setIsModalOpen(false);
+			}
+		} catch (error) {
+			if (
+				error.response &&
+				error.response.status >= 400 &&
+				error.response.status <= 500
+			) {
+				setError(error.response.data.message);
+			}
+		}
 	}
 
 	const handleChange = (page) => {
+		console.log("Inside here");
 		setPaginationState({
 		  current: page,
 		  minIndex: (page - 1) * pageSize,
 		  maxIndex: page * pageSize
 		});
 	};
+
+	const gotoNewLink = (info) => {
+		console.log('click ', info);
+		window.open(userbookmark[info.key].link, '_blank').focus();
+	  };
 
 	const onSearch = async (e) => {
 		console.log(e);
@@ -197,12 +240,6 @@ const Main = () => {
 		}
 	};
 
-	const triggerImage = (props, ref) => {
-		return (
-			<img {...props} ref={ref} src={process.env.PUBLIC_URL + '/img/index.png'}></img>
-		);
-	};
-
 	return (
 		<div className={styles.main_container}>
 			<div>
@@ -216,25 +253,9 @@ const Main = () => {
 					onSearch={onSearch}
 					style={{ width: 400 }}
 					/>
-					{/* <Dropdown renderToggle={`
-					<img id="usimg" src= onClick={handleLogout} alt="">
-
-					</img>
-					`}>
-						<Dropdown.Item>Change Password</Dropdown.Item>
-						<Dropdown.Item>Logout</Dropdown.Item>
-					</Dropdown> */}
-					<>
-					<div>
-						<Dropdown renderToggle={triggerImage}>
-							<Dropdown.Item id="sel">Change Password</Dropdown.Item>
-							<Dropdown.Item onClick={handleLogout} id="sel">Logout</Dropdown.Item>
-						</Dropdown>
-					</div>
-					</>
-					{/* <button id="mybutton" onClick={handleLogout}>
+					<button id="mybutton" onClick={handleLogout}>
 						Logout
-					</button> */}
+					</button>
 				</nav>
 			</div>
 			<br />
@@ -252,6 +273,8 @@ const Main = () => {
 									width: 256,
 								}}
 								items={items}
+								onTitleClick={() => alert("HELLO WORLD")}
+								onClick={gotoNewLink}
 								/>
 							</div>
 							<div style={cardStyle} className="right-element">
@@ -261,7 +284,7 @@ const Main = () => {
 									index < paginationState.maxIndex && (
 										<div>
 											<Card title={<a style={{"textDecoration": "none"}} href={data.link} target="_blank">{data.title}</a>} 
-											extra={<a href="#" onClick={() => saveLink(data.title)}>Add to Favourites</a>} hoverable={true}>
+											extra={<a href="#" onClick={() => saveLink(data.title, data.link)}>Add to Favourites</a>} hoverable={true}>
 												{data.snippet}
 											</Card>
 											<br />
@@ -299,8 +322,10 @@ const Main = () => {
 								</div>
 								<div>
 									{links.length > 0 ? 
-										<Pagination total={links.length} pageSize={10} current={paginationState.current} 
-										onChange={handleChange} style={{ "marginBottom":"1rem" }}/>
+										<div>
+											<Pagination total={links.length} pageSize={10} current={paginationState.current} 
+											onChange={handleChange} style={{ "marginBottom":"1rem" }}/>
+										</div>
 										:
 										<h4></h4>
 									}
