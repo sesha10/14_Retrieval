@@ -4,6 +4,7 @@ const {UserModel, validate} = require("../models/Student");
 const {QueryModel} = require("../models/Query");
 const {imageQueryModel} = require("../models/ImgQuery");
 const {bookmarkModel} = require("../models/Bookmarks");
+const {historyModel} = require("../models/History");
 const bcrypt = require('bcrypt');
 const {PythonShell} = require('python-shell')
 const { spawn } = require('child_process')
@@ -55,33 +56,23 @@ router.post("/submitQuery", async(req, res) => {
                 try {
                     PythonShell.run('/home/siddhant/Documents/Acads/SSD/SearchEngine/filter.py', options, function (err, result){
                         if (err) throw err;
-                        // result is an array consisting of messages collected
-                        //during execution of script.
-                        // console.log('result: ', JSON.parse(result));
                         textdata = JSON.parse(result)
                         textdata.forEach(element => {
                             element.userID = req.body.userID
                         });
-                        // data.userID = req.body.userID
                         console.log("Inside")
                         PythonShell.run('/home/siddhant/Documents/Acads/SSD/SearchEngine/filter_image.py', options, function (err, result){
                             if (err) throw err;
-                            // result is an array consisting of messages collected
-                            //during execution of script.
-                            // console.log('result: ', JSON.parse(result));
                             imgdata = JSON.parse(result)
                             imgdata.forEach(element => {
                                 element.userID = req.body.userID
                             });
-                            // data.userID = req.body.userID
                             console.log(imgdata)
                             console.log(textdata)
                             QueryModel.insertMany(textdata);
                             imageQueryModel.insertMany(imgdata);
                             return res.status(200).send({textdata, imgdata});
-                            // return res.status(200).send(data);
                         });
-                        // return res.status(200).send(data);
                 });
                 resolve();
                 } catch {
@@ -96,9 +87,6 @@ router.post("/submitQuery", async(req, res) => {
             console.log("Already Present");
             return res.status(200).send({textdata, imgdata});
         }
-        // console.log("Here");
-        // await new QueryModel.insertMany(textdata).save();
-        // await new imageQueryModel.insertMany(imgdata).save();
     } catch(error) {
         console.log(error);
         return res.status(500).send({message: "Server Error!!"});
@@ -111,18 +99,6 @@ router.post("/addBookmark", async(req, res) => {
         console.log(req.body);
         await new bookmarkModel({...req.body}).save();
         console.log("Bookmark Added");
-        // const { error } = validate(req.body);
-        // console.log("User signup", error);
-        // console.log(error);
-        // if(error)
-        //     return res.status(400).send({message: error.details.details[0].message});
-        // const user = await UserModel.findOne({userID: req.body.userID});
-        // if(user)
-        //     return res.status(409).send({message: "User with this UserID already exists!!"});
-
-        // const salt = await bcrypt.genSalt(Number(process.env.SALT));
-        // const hashPassword = await bcrypt.hash(req.body.password, salt);
-        // await new UserModel({...req.body, password: hashPassword}).save();
         res.status(201).send({message: "Bookmark added successfully"});
     } catch(err) {
         console.log(err);
@@ -131,15 +107,50 @@ router.post("/addBookmark", async(req, res) => {
 });
 
 
+router.post("/removeBookmark", async(req, res) => {
+    try {
+        console.log(req.body);
+        const status = await bookmarkModel.deleteOne({...req.body});
+        console.log("Bookmark Removed");
+        if(status)
+            res.status(201).send({message: "Bookmark removed successfully"});
+    } catch(err) {
+        console.log(err);
+        res.status(500).send({message: "Internal Server Error!"});
+    }
+});
+
+router.post("/addHistory", async(req, res) => {
+    try {
+        console.log(req.body);
+        await historyModel.deleteOne({...req.body});
+        await new historyModel({...req.body}).save();
+        console.log("History Added");
+        res.status(201).send({message: "History saved successfully"});
+    } catch(err) {
+        console.log(err);
+        res.status(500).send({message: "Internal Server Error!"});
+    }
+});
+
+router.post("/removeHistory", async(req, res) => {
+    try {
+        console.log(req.body);
+        const status = await historyModel.deleteOne({...req.body});
+        console.log("History Removed");
+        if(status)
+            res.status(201).send({message: "History removed successfully"});
+    } catch(err) {
+        console.log(err);
+        res.status(500).send({message: "Internal Server Error!"});
+    }
+});
 
 
 router.post("/addquery", async(req, res) => {
     try {
         console.log(req.body);
         console.log("Here, In add query");
-        // const { error } = validateQuery(req.body);
-        // if(error)
-        //     return res.status(400).send({message: error.details.details[0].message});
         const student = await UserModel.findOne({userID: req.body.userID});
         // // console.log(student.generateAuthToken());
         console.log("Student found", req.body);
@@ -163,19 +174,53 @@ router.get("/getqueries", async(req, res) => {
         console.log(req.query);
         const queries = await QueryModel.find({userID : req.query.userID});
         const bookmarks = await bookmarkModel.find({userID : req.query.userID});
-        console.log(queries);
+        const history = await historyModel.find({userID : req.query.userID});
+        // console.log(queries);
         let sendData = [];
+        if(queries.length == 0) return res.status(200).send({sendData});
+
         let data = new Set();
+        // if(data.size > 0) {
+            console.log(queries);
         console.log("After Set");
-        while (data.size < 5) {
+        let cnt = 0;
+        while (cnt < 10) {
             let len = queries.length;
             let index = Math.floor(Math.random()*(len));
             data.add(queries[index]);
+            cnt++;
         }
         data.forEach(key => sendData.push(key));
         console.log(sendData);
         console.log("--------");
-        return res.status(200).send({sendData, bookmarks});
+            // return res.status(200).send({sendData, bookmarks, history});
+        // }
+        return res.status(200).send({sendData, bookmarks, history});
+        // return res.status(200).send({sendData});
+    } catch(error) {
+        console.log(error);
+        return res.status(500).send({message: "Server Error!!"});
+    }
+});
+
+router.get("/getbookmarks", async(req, res) => {
+    try{
+        console.log("In get Queries");
+        console.log(req.query);
+        const bookmarks = await bookmarkModel.find({userID : req.query.userID});
+        return res.status(200).send({bookmarks});
+    } catch(error) {
+        console.log(error);
+        return res.status(500).send({message: "Server Error!!"});
+    }
+});
+
+router.get("/gethistory", async(req, res) => {
+    try{
+        console.log("In get History");
+        console.log(req.query);
+        const userhistory = await historyModel.find({userID : req.query.userID});
+        return res.status(200).send({userhistory});
     } catch(error) {
         console.log(error);
         return res.status(500).send({message: "Server Error!!"});
