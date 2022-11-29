@@ -25,8 +25,8 @@ const Signup = () => {
 			// data.role = selectedtype;
 			console.log(data);
 			const { data: res } = await axios.post(url, data);
-			navigate("/login");
 			console.log(res.message);
+			navigate("/login");
 		} catch (error) {
 			if (
 				error.response &&
@@ -87,7 +87,7 @@ const Signup = () => {
 						))}
 						</select> */}
 						{error && <div className={styles.error_msg}>{error}</div>}
-						<button type="submit" className={styles.green_btn}>
+						<button type="submit" className={styles.green_btn} onClick={handleSubmit}>
 							Sign Up
 						</button>
 					</form>

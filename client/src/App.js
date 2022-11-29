@@ -39,6 +39,7 @@ function App() {
 			<Route path="/signup" exact element={<Signup />} />
 			<Route path="/login" exact element={<Login />} />
 			<Route path="/" element={<Navigate replace to="/login" />} /> */}
+      <Route path="/login" exact element={<Login />} />
       {user && <Route path="/dashboard" exact element={<Main />} />}
       {/* {user && <Route path="/student/addQuery" exact element={<Query />} />} */}
       {/* {user && <Route path="/tas/queries" exact element={<TAMain />} />} */}

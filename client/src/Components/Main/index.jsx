@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Input, Space, Spin, Card, Button, Modal, Tabs, Image, Pagination } from 'antd';
-import { AppstoreOutlined, MailOutlined, SettingOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
+import { HistoryOutlined, StarFilled } from '@ant-design/icons';
 import { Menu } from 'antd';
 const { Search } = Input;
 const { Meta } = Card;
@@ -48,7 +48,7 @@ function getItem(label, key, icon, children, type) {
   const rootSubmenuKeys = ['sub1', 'sub2', 'sub4'];
 
   const pageSize = 10;
-
+let submenuNum = 0;
 const Main = () => {
 
 	const [openKeys, setOpenKeys] = useState(['sub1']);
@@ -73,11 +73,23 @@ const Main = () => {
 		userID: localStorage.getItem("userID")
 	});
 
-	const [userbookmark, setUserBookMarks] = useState({
+	const [history, setHistory] = useState({
+		link: "",
+		title: "",
+		userID: localStorage.getItem("userID")
+	});
+
+	const [userhistory, setUserHistory] = useState({
+		link: "",
+		title: "",
+		userID: localStorage.getItem("userID")
+	});
+
+	let [userbookmark, setUserBookMarks] = useState([{
 		link: "",
 		title: "",
 		userID: ""
-	});
+	}]);
 
 	const [prevData, setPrevData] = useState({
 		created: "",
@@ -139,26 +151,80 @@ const Main = () => {
 		userID: localStorage.getItem("userID")
 	};
 
-	useEffect(() => {
-		getPreviousQueries();
-	}, []);
 
 	const getPreviousQueries = () => {
 		const url = "http://localhost:8080/api/users/getqueries";
 		console.log(localStorage.getItem("userID"));
 		axios.get(url, {params}).then(res => {
+			console.log("Before Return", res.data.sendData);
+			if(res.data.sendData.length == 0) {
+				items = [
+					getItem('Favourites', 'sub1', <StarFilled />, []),
+					getItem('History', 'sub2', <HistoryOutlined />, [])
+				];
+				return;
+			}
+
+			console.log("After Return");
 			console.log(res.data.bookmarks);
 			setPrevData(res.data.sendData);
 			setUserBookMarks(res.data.bookmarks);
+			setUserHistory(res.data.history);
 			console.log(userbookmark);
+			console.log(prevData);
 
 			items = [
-				getItem('Favourites', 'sub1', <StarFilled />, res.data.bookmarks.map((data, index) => getItem(data.title, index)))
+				getItem('Favourites', 'sub1', <StarFilled />, res.data.bookmarks.map((data, index) => getItem(data.title, index))),
+				getItem('History', 'sub2', <HistoryOutlined />, res.data.history.slice(0).reverse().map((data, index) => getItem(data.title, index)))
 			];
 
 
 		}).catch(error => console.log(error));
 	}
+
+	const getBookmarks = () => {
+		const url = "http://localhost:8080/api/users/getbookmarks";
+		console.log(localStorage.getItem("userID"));
+		axios.get(url, {params}).then(res => {
+			console.log(res.data.bookmarks);
+			// setPrevData(res.data.sendData);
+			setUserBookMarks(res.data.bookmarks);
+			console.log(userbookmark);
+			// console.log(prevData);
+
+			items = [
+				getItem('Favourites', 'sub1', <StarFilled />, res.data.bookmarks.map((data, index) => getItem(data.title, index))),
+				getItem('History', 'sub2', <HistoryOutlined />, userhistory.slice(0).reverse().map((data, index) => getItem(data.title, index)))
+			];
+
+
+		}).catch(error => console.log(error));
+	}
+
+	const getHistory = () => {
+		const url = "http://localhost:8080/api/users/gethistory";
+		console.log(localStorage.getItem("userID"));
+		axios.get(url, {params}).then(res => {
+			console.log(res.data.userhistory);
+			// setPrevData(res.data.sendData);
+			setUserHistory(res.data.userhistory);
+			console.log(userhistory);
+			// console.log(prevData);
+
+			// items = [
+			// 	getItem('History', 'sub2', <StarFilled />, res.data.userhistory.map((data, index) => getItem(data.title, index)))
+			// ];
+			// items.(getItem('History', 'sub2', <StarFilled />, res.data.userhistory.map((data, index) => getItem(data.title, index))))
+			items = [
+				getItem('Favourites', 'sub1', <StarFilled />, userbookmark.map((data, index) => getItem(data.title, index))),
+				getItem('History', 'sub2', <HistoryOutlined />, res.data.userhistory.slice(0).reverse().map((data, index) => getItem(data.title, index)))
+			];
+		}).catch(error => console.log(error));
+	}
+
+	useEffect(() => {
+		getPreviousQueries();
+	}, []);
 
 	const changeTab = activeKey => {
 		console.log(activeKey);
@@ -184,10 +250,54 @@ const Main = () => {
 				console.log(bookmark);
 				const { data: res } = await axios.post(url, bookmark);
 				console.log(res);
-				// setLinks(res.textdata);
-				// setImgLinks(res.imgdata);
-				// console.log(imglinks);
-				// setIsModalOpen(false);
+				getBookmarks();
+			}
+		} catch (error) {
+			if (
+				error.response &&
+				error.response.status >= 400 &&
+				error.response.status <= 500
+			) {
+				setError(error.response.data.message);
+			}
+		}
+	}
+
+	const addHistory = async (title, link) => {
+		console.log(title, link);
+		try {
+			if(title !== '' && link !== '') {
+				const url = "http://localhost:8080/api/users/addHistory";
+				history.link = link;
+				history.title = title
+				console.log(history);
+				const { data: res } = await axios.post(url, history);
+				console.log(res);
+				getHistory();
+			}
+		} catch (error) {
+			if (
+				error.response &&
+				error.response.status >= 400 &&
+				error.response.status <= 500
+			) {
+				setError(error.response.data.message);
+			}
+		}
+	}
+
+	const removeLink = async (title, link) => {
+		console.log(title, link);
+		try {
+			if(title !== '' && link !== '') {
+				// showModal();
+				const url = "http://localhost:8080/api/users/removeBookmark";
+				bookmark.link = link;
+				bookmark.title = title;
+				console.log(bookmark);
+				const { data: res } = await axios.post(url, bookmark);
+				console.log(res);
+				getBookmarks();
 			}
 		} catch (error) {
 			if (
@@ -211,8 +321,15 @@ const Main = () => {
 
 	const gotoNewLink = (info) => {
 		console.log('click ', info);
-		window.open(userbookmark[info.key].link, '_blank').focus();
-	  };
+		if(info.keyPath[1] == 'sub1') {
+			window.open(userbookmark[info.key].link, '_blank').focus();
+			addHistory(userbookmark[info.key].title,userbookmark[info.key].link);
+		}
+		else if(info.keyPath[1] == 'sub2') {
+			window.open(userhistory[userhistory.length - info.key - 1].link, '_blank').focus();
+			addHistory(userhistory[userhistory.length - info.key - 1].title,userhistory[userhistory.length - info.key - 1].link);
+		}
+	};
 
 	const onSearch = async (e) => {
 		console.log(e);
@@ -253,9 +370,10 @@ const Main = () => {
 					onSearch={onSearch}
 					style={{ width: 400 }}
 					/>
-					<button id="mybutton" onClick={handleLogout}>
+					{/* <button id="mybutton" onClick={handleLogout}>
 						Logout
-					</button>
+					</button> */}
+					<Button type="danger" size="large" id="mybutton" onClick={handleLogout} style={{"marginRight": "1rem"}}>Logout</Button>
 				</nav>
 			</div>
 			<br />
@@ -283,10 +401,17 @@ const Main = () => {
 									links.map((data, index) => index >= paginationState.minIndex &&
 									index < paginationState.maxIndex && (
 										<div>
-											<Card title={<a style={{"textDecoration": "none"}} href={data.link} target="_blank">{data.title}</a>} 
+											{userbookmark.find(obj => obj.link == data.link) != null ?
+											<Card title={<a style={{"textDecoration": "none"}} href={data.link} onClick={() => addHistory(data.title, data.link)} target="_blank">{data.title}</a>} 
+											extra={<a href="#" onClick={() => removeLink(data.title, data.link)}>Remove from Favourites</a>} hoverable={true}>
+												{data.snippet}
+											</Card>
+											:
+											<Card title={<a style={{"textDecoration": "none"}} href={data.link} onClick={() => addHistory(data.title, data.link)} target="_blank">{data.title}</a>} 
 											extra={<a href="#" onClick={() => saveLink(data.title, data.link)}>Add to Favourites</a>} hoverable={true}>
 												{data.snippet}
 											</Card>
+											}
 											<br />
 										</div>
 										)
@@ -295,7 +420,7 @@ const Main = () => {
 									(prevData.length > 0 ? 
 										prevData.map(data => {
 										return(
-											<div>
+											<div style={{"display":"inline-block", "marginLeft":"0.5rem", "marginTop":"0.5rem"}}>
 												<Card
 													hoverable
 													style={{ width: 240 }}
@@ -312,7 +437,7 @@ const Main = () => {
 												>
 													<Meta title={data.title} description={data.snippet} />
 												</Card>
-												<br />
+												{/* <br /> */}
 											</div>
 										)
 									}) :
@@ -350,17 +475,17 @@ const Main = () => {
 								items={items}
 								/>
 							</div>
-							<div style={{"marginLeft": 550}} className="right-element">
+							<div style={{"marginLeft": 50}} className="right-element">
 								<div>
 									{imglinks.length > 0 ? 
 										imglinks.map(data => {
 											return(
-											<div>
+											<div style={{"display":"inline-block", "marginLeft":"0.5rem", "marginTop":"0.5rem"}}>
 												<Image.PreviewGroup>
 													<Image width={200} src={data.link} />
 												</Image.PreviewGroup>
-												<br />
-												<br />
+												{/* <br /> */}
+												{/* <br /> */}
 											</div>
 											)
 										}) : <h3>No data yet</h3> }
