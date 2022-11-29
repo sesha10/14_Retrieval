@@ -49,7 +49,13 @@ def get_mod_time_content(row):
     mtago = soup.find("meta", property="article:modified_time")
 
     # print(tago["content"] if tago else "NO content")
-    return mtago["content"][:10] if mtago else datetime.today().strftime('%Y-%m-%d')
+    retdate = mtago["content"][:10] if mtago else datetime.today().strftime('%Y-%m-%d')
+    start = datetime.strptime(retdate, "%Y-%m-%d")
+    end = datetime.strptime(datetime.today().strftime('%Y-%m-%d'), '%Y-%m-%d')
+
+    res = (end.year - start.year) * 12 + (end.month - start.month)
+
+    return res
 
 def get_link_num(weblk):
     # print(weblk)
@@ -111,9 +117,19 @@ class Filter():
 
     def time_filter(self):
         time_cnt = self.filtered.apply(get_time_content, axis=1)
-        mod_time_cnt = self.filtered.apply(get_mod_time_content, axis=1)
+        # print(self.filtered.apply(get_mod_time_content, axis=1))
+        # mod_time_cnt, 
+        diff = self.filtered.apply(get_mod_time_content, axis=1)
+
         self.filtered["time"] = time_cnt
-        self.filtered["lattime"] = mod_time_cnt
+        # self.filtered["lattime"] = mod_time_cnt
+
+        diff[diff >= 6] = RESULT_COUNT
+        diff[diff != RESULT_COUNT] = 0
+
+        self.filtered["timd"] = diff
+        # print(diff)
+        self.filtered["rank"] += diff
 
     def link_filter(self):
         link_cnt = self.filtered["link"].apply(get_link_num)
