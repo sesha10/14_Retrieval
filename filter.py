@@ -268,14 +268,18 @@ import re
 import sys
 import math
 import time
+import threading
 from search import *
 from settings import *
 from pickle import TRUE
+from threading import Thread
 from datetime import datetime
 from collections import Counter
 from urllib.parse import urlparse
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup, SoupStrainer
+
+lkd = threading.Lock()
 
 with open("/home/siddhant/Documents/Acads/SSD/SearchEngine/blacklist.txt") as f:
     bad_domains_list = set(f.read().split("\n"))
@@ -373,12 +377,17 @@ class Filter():
 
         word_count[word_count <= .5] = RESULT_COUNT
         word_count[word_count != RESULT_COUNT] = 0
+        lkd.acquire()
         self.filtered["rank"] += word_count
+        lkd.release()
 
     def tracker_filter(self):
         tracker_count = self.filtered.apply(tracker_urls, axis = 1)
         tracker_count[tracker_count > tracker_count.median()] = RESULT_COUNT * 2
+
+        lkd.acquire()
         self.filtered["rank"] += tracker_count
+        lkd.release()
 
 
     def time_filter(self):
@@ -397,7 +406,9 @@ class Filter():
         # modified time
         self.filtered["timd"] = diff
         # print(diff)
+        lkd.acquire()
         self.filtered["rank"] += diff
+        lkd.release()
 
     def link_filter(self):
         link_cnt = self.filtered["link"].apply(get_link_num)
@@ -413,14 +424,32 @@ class Filter():
         self.filtered["similar"] = siml
         siml[siml <= 0.4] = RESULT_COUNT
         siml[siml != RESULT_COUNT] = 0
+
+        lkd.acquire()
         self.filtered["rank"] += siml
+        lkd.release()
 
     def filter(self, seo):
-        self.content_filter()
-        self.tracker_filter()
-        self.time_filter()
+        # self.content_filter()
+        # self.tracker_filter()
+        # self.time_filter()
         # self.link_filter()
-        self.cos_filter(seo)
+        # self.cos_filter(seo)
+        t1 = Thread(target=self.content_filter, args=())
+        t2 = Thread(target=self.tracker_filter, args=())
+        t3 = Thread(target=self.time_filter, args=())
+        t4 = Thread(target=self.cos_filter, kwargs={'seo': seo})
+
+        t1.start()
+        t2.start()
+        t3.start()
+        t4.start()
+
+        t1.join()
+        t2.join()
+        t3.join()
+        t4.join()
+
         # self.time_filter()
         self.filtered = self.filtered.sort_values("rank", ascending=True)
         self.filtered["rank"] = self.filtered["rank"].round()
