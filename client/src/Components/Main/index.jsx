@@ -373,7 +373,7 @@ const Main = () => {
 					{/* <button id="mybutton" onClick={handleLogout}>
 						Logout
 					</button> */}
-					<Button type="danger" size="large" id="mybutton" onClick={handleLogout} style={{"marginRight": "1rem"}}>Logout</Button>
+					<Button size="large" id="mybutton" onClick={handleLogout} style={{"marginRight": "1rem"}}>Logout</Button>
 				</nav>
 			</div>
 			<br />
