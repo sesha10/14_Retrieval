@@ -41,6 +41,8 @@ const Login = () => {
 	};
 
 	return (
+		<div>
+			<h2 style={{"marginLeft":"30rem"}}>Findsly - Your very own Search Engine..</h2>
 		<div className={styles.login_container}>
 			<div className={styles.login_form_container}>
 				<div className={styles.left}>
@@ -101,6 +103,7 @@ const Login = () => {
 					</Link>
 				</div>
 			</div>
+		</div>
 		</div>
 	);
 };
