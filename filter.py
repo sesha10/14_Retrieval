@@ -1,14 +1,15 @@
-from pickle import TRUE
-from bs4 import BeautifulSoup, SoupStrainer
-from urllib.parse import urlparse
-from settings import *
-from search import *
-import time
+import re
 import sys
-from requests_html import HTMLSession
+import math
+import time
+from search import *
+from settings import *
+from pickle import TRUE
+from datetime import datetime
 from collections import Counter
-import dateparser
-import datetime
+from urllib.parse import urlparse
+from requests_html import HTMLSession
+from bs4 import BeautifulSoup, SoupStrainer
 
 with open("/home/siddhant/Documents/Acads/SSD/SearchEngine/blacklist.txt") as f:
     bad_domains_list = set(f.read().split("\n"))
@@ -40,15 +41,15 @@ def get_time_content(row):
     soup = BeautifulSoup(row["html"], 'html.parser')
     tago = soup.find("meta", property="article:published_time")
 
-    # print(tago["content"] if tago else "NO content")
-    return tago["content"][:10] if tago else "Now"
+    # print(tago["content"][:10] if tago else "Now")
+    return tago["content"][:10] if tago else datetime.today().strftime('%Y-%m-%d')
 
 def get_mod_time_content(row):
     soup = BeautifulSoup(row["html"], 'html.parser')
     mtago = soup.find("meta", property="article:modified_time")
 
     # print(tago["content"] if tago else "NO content")
-    return mtago["content"][:10] if mtago else "Now"
+    return mtago["content"][:10] if mtago else datetime.today().strftime('%Y-%m-%d')
 
 def get_link_num(weblk):
     # print(weblk)
@@ -61,12 +62,32 @@ def get_link_num(weblk):
     return unique_netlocs
 
 
-def get_mod_time_content(row):
-    soup = BeautifulSoup(row["html"], 'html.parser')
-    mtago = soup.find("meta", property="article:modified_time")
 
-    # print(tago["content"] if tago else "NO content")
-    return mtago["content"][:10] if mtago else "Now"
+WORD = re.compile(r'\w+')
+
+def get_cosine(vec1, vec2):
+    intersection = set(vec1.keys()) & set(vec2.keys())
+    numerator = sum([vec1[x] * vec2[x] for x in intersection])
+
+    sum1 = sum([vec1[x]**2 for x in vec1.keys()])
+    sum2 = sum([vec2[x]**2 for x in vec2.keys()])
+    denominator = math.sqrt(sum1) * math.sqrt(sum2)
+
+    if not denominator:
+        return 0.0
+    else:
+        return float(numerator) / denominator
+
+def text_to_vector(text):
+    words = WORD.findall(text)
+    return Counter(words)
+
+def get_sim(row, seo):
+    vector1 = text_to_vector(row.casefold())
+    vector2 = text_to_vector(seo)
+
+    cosine11 = get_cosine(vector1, vector2)
+    return cosine11
 
 
 class Filter():
@@ -100,12 +121,22 @@ class Filter():
         # print("")
         self.filtered["linkcnt"] = link_cnt
 
-    def filter(self):
+    def cos_filter(self, seo):
+        siml = self.filtered["title"].apply(get_sim, args=(seo,))
+        # print(siml)
+        # print("")
+        siml /= siml.max()
+        self.filtered["similar"] = siml
+        siml[siml <= 0.4] = RESULT_COUNT
+        siml[siml != RESULT_COUNT] = 0
+        self.filtered["rank"] += siml
+
+    def filter(self, seo):
         self.content_filter()
         self.tracker_filter()
         self.time_filter()
-
         self.link_filter()
+        self.cos_filter(seo)
         # self.time_filter()
         self.filtered = self.filtered.sort_values("rank", ascending=True)
         self.filtered["rank"] = self.filtered["rank"].round()
@@ -115,12 +146,13 @@ class Filter():
         return self.filtered
 
 begin = time.time()
-results = search(str(sys.argv[1]))
+seo = str(sys.argv[1])
+results = search(seo)
 #----
 # results = search("krishna")
 #----
 fi = Filter(results)
-results = fi.filter()
+results = fi.filter(seo)
 # print(results)
 end = time.time()
 # print(f"Total runtime of the API fetch is {end - begin}")
